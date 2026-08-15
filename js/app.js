@@ -181,7 +181,6 @@ el("googleSignInButton").addEventListener("click", () => {
 el("signOutButton").addEventListener("click", () => window.LoteriaAuth.signOut());
 
 window.LoteriaAuth.onChange(async user => {
-  console.log("[LoteriaAuth] onChange:", user ? user.email : "sin usuario (null)");
   currentUser = user;
   if (!user) { showAuthScreen(); return; }
   hideAuthScreen();
@@ -192,7 +191,7 @@ window.LoteriaAuth.onChange(async user => {
     const remote = await window.LoteriaAuth.loadData(user.uid);
     data = remote || cached || structuredClone(demoData);
   } catch (error) {
-    console.error("[LoteriaAuth] No se pudo cargar de Firestore", error.code, error.message);
+    console.error("No se pudo cargar de Firestore", error.code, error.message);
     data = cached || structuredClone(demoData);
   }
   render();

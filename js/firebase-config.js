@@ -17,9 +17,7 @@ const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
 // GitHub Pages sends a Cross-Origin-Opener-Policy header that breaks signInWithPopup, use redirect instead
-getRedirectResult(auth)
-  .then(result => console.log("[LoteriaAuth] getRedirectResult:", result ? result.user.email : "sin resultado (null)"))
-  .catch(error => console.error("[LoteriaAuth] Error al completar el inicio de sesión", error.code, error.message));
+getRedirectResult(auth).catch(error => console.error("Error al completar el inicio de sesión", error.code, error.message));
 
 // Each signed-in user owns exactly one document: loteria/{uid}
 window.LoteriaAuth = {
