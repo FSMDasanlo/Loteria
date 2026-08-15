@@ -41,7 +41,7 @@ const demoData = {
 let data = structuredClone(demoData);
 let selectedYear = Number(localStorage.getItem("mi-navidad-year") || 2026);
 let currentView = "resumen";
-let currentUser = null;
+let currentNick = null;
 let saveTimer = null;
 
 const euro = value => new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 2 }).format(value || 0);
@@ -93,10 +93,10 @@ const el = id => document.getElementById(id);
 function save() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   localStorage.setItem("mi-navidad-year", String(selectedYear));
-  if (!currentUser) return;
+  if (!currentNick) return;
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
-    window.LoteriaAuth.saveData(currentUser.uid, data).catch(error => console.error("Error guardando en Firestore", error));
+    window.LoteriaAuth.saveData(currentNick, data).catch(error => console.error("Error guardando en Firestore", error));
   }, 600);
 }
 function renderYearOptions() {
@@ -174,25 +174,52 @@ el("exportButton").addEventListener("click", () => { const blob = new Blob([JSON
 
 function showAuthScreen() { el("authScreen").hidden = false; el("appRoot").hidden = true; }
 function hideAuthScreen() { el("authScreen").hidden = true; el("appRoot").hidden = false; }
+function setAuthError(message) { const box = el("authError"); box.textContent = message || ""; box.hidden = !message; }
 
-el("googleSignInButton").addEventListener("click", () => {
-  window.LoteriaAuth.signIn().catch(error => alert("Error al iniciar sesión: " + error.message));
-});
-el("signOutButton").addEventListener("click", () => window.LoteriaAuth.signOut());
-
-window.LoteriaAuth.onChange(async user => {
-  currentUser = user;
-  if (!user) { showAuthScreen(); return; }
+async function enterApp(nick) {
+  currentNick = nick;
+  localStorage.setItem("mi-navidad-user", nick);
+  el("userLabel").textContent = nick;
   hideAuthScreen();
-  el("userLabel").textContent = user.displayName || user.email || "";
   const cached = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
   if (cached) { data = cached; render(); }
   try {
-    const remote = await window.LoteriaAuth.loadData(user.uid);
+    const remote = await window.LoteriaAuth.loadData(nick);
     data = remote || cached || structuredClone(demoData);
   } catch (error) {
-    console.error("No se pudo cargar de Firestore", error.code, error.message);
+    console.error("No se pudo cargar de Firestore", error);
     data = cached || structuredClone(demoData);
   }
   render();
+}
+
+el("loginForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  setAuthError("");
+  const form = new FormData(event.target);
+  const nick = String(form.get("nick") || "").trim().toLowerCase();
+  const password = String(form.get("password") || "");
+  if (!/^[a-z0-9_-]{3,20}$/.test(nick)) { setAuthError("El usuario debe tener 3-20 caracteres (letras, números, - o _)."); return; }
+  if (password.length < 4) { setAuthError("La contraseña debe tener al menos 4 caracteres."); return; }
+  try {
+    await window.LoteriaAuth.ready();
+    if (el("newAccountCheck").checked) await window.LoteriaAuth.register(nick, password);
+    else await window.LoteriaAuth.login(nick, password);
+    await enterApp(nick);
+  } catch (error) {
+    setAuthError(error.message || "No se pudo iniciar sesión.");
+  }
 });
+
+el("signOutButton").addEventListener("click", () => {
+  currentNick = null;
+  localStorage.removeItem("mi-navidad-user");
+  showAuthScreen();
+});
+
+(async function bootstrapAuth() {
+  await window.LoteriaAuth.ready();
+  const saved = localStorage.getItem("mi-navidad-user");
+  if (saved) await enterApp(saved);
+  else showAuthScreen();
+})();

@@ -12,12 +12,16 @@
 </head>
 <body>
   <div class="auth-screen" id="authScreen">
-    <div class="auth-card">
+    <form class="auth-card" id="loginForm">
       <span class="brand-mark">✦</span>
       <h1>Mi Navidad</h1>
-      <p>Inicia sesión para ver y guardar tus décimos.</p>
-      <button class="primary-button" id="googleSignInButton">Continuar con Google</button>
-    </div>
+      <p>Entra con tu usuario para ver y guardar tus décimos.</p>
+      <label class="auth-field"><span>Usuario</span><input id="loginNick" name="nick" autocomplete="username" maxlength="20" placeholder="ej. maria" required></label>
+      <label class="auth-field"><span>Contraseña</span><input id="loginPassword" name="password" type="password" autocomplete="current-password" minlength="4" placeholder="••••••" required></label>
+      <label class="auth-checkbox"><input type="checkbox" id="newAccountCheck"> <span>Crear cuenta nueva</span></label>
+      <p class="auth-error" id="authError" hidden></p>
+      <button class="primary-button" type="submit">Entrar</button>
+    </form>
   </div>
   <div class="app-shell" id="appRoot" hidden>
     <header class="topbar">

@@ -33,6 +33,11 @@ button { cursor: pointer; }
 .auth-card .brand-mark { width: 44px; height: 44px; font-size: 22px; }
 .auth-card h1 { margin: 4px 0 0; font: 700 26px "Space Grotesk", sans-serif; }
 .auth-card p { color: var(--muted); font-size: 14px; margin-bottom: 8px; }
+.auth-field { display: grid; gap: 6px; width: 100%; text-align: left; font-size: 13px; font-weight: 600; color: var(--muted); }
+.auth-field input { border: 1px solid var(--line); border-radius: 7px; padding: 10px 12px; color: var(--ink); background: var(--paper); }
+.auth-checkbox { display: flex; align-items: center; gap: 8px; width: 100%; font-size: 13px; color: var(--muted); }
+.auth-error { color: var(--coral); font-size: 13px; margin: 0; }
+.auth-card .primary-button { width: 100%; }
 main { max-width: 1240px; margin: 0 auto; padding: 58px 5vw 24px; }
 .page-heading { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 34px; }
 .eyebrow { margin: 0 0 9px; color: var(--coral); text-transform: uppercase; letter-spacing: .13em; font-size: 11px; font-weight: 700; }

@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -14,21 +14,43 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const provider = new GoogleAuthProvider();
 
-// GitHub Pages sends a Cross-Origin-Opener-Policy header that breaks signInWithPopup, use redirect instead
-getRedirectResult(auth).catch(error => console.error("Error al completar el inicio de sesión", error.code, error.message));
+// Hash con sal, nunca se guarda la contraseña en texto plano
+async function hashPassword(password, salt) {
+  const bytes = new TextEncoder().encode(`${salt}:${password}`);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(digest)).map(byte => byte.toString(16).padStart(2, "0")).join("");
+}
+function randomSalt() {
+  return Array.from(crypto.getRandomValues(new Uint8Array(16))).map(byte => byte.toString(16).padStart(2, "0")).join("");
+}
 
-// Each signed-in user owns exactly one document: loteria/{uid}
 window.LoteriaAuth = {
-  signIn: () => signInWithRedirect(auth, provider),
-  signOut: () => signOut(auth),
-  onChange: callback => onAuthStateChanged(auth, callback),
-  loadData: async uid => {
-    const snap = await getDoc(doc(db, "loteria", uid));
+  // Sesión anónima de Firebase, solo para satisfacer las reglas de Firestore (auth != null)
+  ready: () => new Promise(resolve => {
+    onAuthStateChanged(auth, user => { if (user) resolve(user); });
+    signInAnonymously(auth).catch(error => console.error("Error de sesión anónima", error));
+  }),
+  register: async (nick, password) => {
+    const ref = doc(db, "usuarios", nick);
+    const existing = await getDoc(ref);
+    if (existing.exists()) throw new Error("Ese usuario ya existe, elige otro nombre.");
+    const salt = randomSalt();
+    const passwordHash = await hashPassword(password, salt);
+    await setDoc(ref, { passwordHash, salt, createdAt: Date.now() });
+  },
+  login: async (nick, password) => {
+    const snap = await getDoc(doc(db, "usuarios", nick));
+    if (!snap.exists()) throw new Error("Usuario o contraseña incorrectos.");
+    const { passwordHash, salt } = snap.data();
+    const hash = await hashPassword(password, salt);
+    if (hash !== passwordHash) throw new Error("Usuario o contraseña incorrectos.");
+  },
+  loadData: async nick => {
+    const snap = await getDoc(doc(db, "loteria", nick));
     return snap.exists() ? snap.data().payload : null;
   },
-  saveData: async (uid, payload) => {
-    await setDoc(doc(db, "loteria", uid), { payload, updatedAt: Date.now() });
+  saveData: async (nick, payload) => {
+    await setDoc(doc(db, "loteria", nick), { payload, updatedAt: Date.now() });
   }
 };
