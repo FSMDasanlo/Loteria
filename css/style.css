@@ -103,6 +103,28 @@ td:last-child, th:last-child { padding-right: 0; text-align: right; }
 .prize-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .prize-card { padding: 18px; border-left: 3px solid var(--gold); background: #fbf8ef; }
 .prize-card p { margin: 7px 0 0; color: var(--muted); font-size: 12px; }
+.prize-grid-main { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 14px; margin-bottom: 22px; }
+.prize-tag { display: inline-block; margin-bottom: 8px; padding: 3px 9px; border-radius: 99px; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.prize-card--first { position: relative; padding: 24px; color: #fff; background: linear-gradient(150deg, var(--green-dark), #0f2521); border-left: 4px solid var(--gold); box-shadow: var(--shadow); }
+.prize-card--first .stat-label { color: #cfe6da; }
+.prize-card--first p { color: #b7d7c6; }
+.prize-card--first .prize-tag { color: var(--green-dark); background: var(--gold); }
+.prize-card--first .prize-input { font: 700 22px "Space Grotesk", sans-serif; letter-spacing: .06em; background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.25); color: #fff; }
+.prize-card--second { padding: 20px; border-left: 4px solid #9aa5ad; background: #f4f6f7; }
+.prize-card--second .prize-tag { color: #5a646b; background: #dfe4e7; }
+.prize-card--second .prize-input { font: 700 18px "Space Grotesk", sans-serif; }
+.prize-card--third { padding: 20px; border-left: 4px solid #b3703a; background: #fbf1e8; }
+.prize-card--third .prize-tag { color: #7a4523; background: #efd9c4; }
+.prize-card--third .prize-input { font: 700 18px "Space Grotesk", sans-serif; }
+.prize-subgroups { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.prize-group h3 { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 14px; }
+.prize-grid-minor { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+.prize-grid-minor .prize-card { padding: 11px; border-left-width: 2px; }
+.prize-card--fourth { border-left-color: var(--coral); background: #fdf1ee; }
+.prize-card--fifth { border-left-color: var(--mint); background: #f4f8f5; }
+.prize-grid-minor .prize-card .stat-label { font-size: 11px; }
+.prize-grid-minor .prize-input { padding: 7px 9px; font-size: 13px; }
+.prize-grid-minor .prize-card p { display: none; }
 .prize-input { width: 100%; margin-top: 8px; padding: 10px 11px; color: var(--ink); background: #fffefa; border: 1px solid var(--line); border-radius: 6px; outline: 0; }
 .prize-input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(31,91,79,.1); }
 .prize-textarea { min-height: 112px; resize: vertical; line-height: 1.6; }
@@ -132,7 +154,7 @@ dialog::backdrop { background: rgba(22,53,47,.45); backdrop-filter: blur(4px); }
 .check-row { display: flex; align-items: center; margin-top: 18px; }
 .check-row input { accent-color: var(--green); }
 .dialog-actions { display: flex; justify-content: end; gap: 10px; margin-top: 26px; }
-@media (max-width: 860px) { .topbar { padding: 0 20px; } .top-nav { display: none; } main { padding: 40px 20px 22px; } .page-heading { align-items: start; flex-direction: column; } .dashboard-grid, .metrics { grid-template-columns: 1fr; } .metrics { grid-column: auto; } .prize-grid { grid-template-columns: 1fr 1fr; } .footer-note { padding-left: 20px; padding-right: 20px; } }
+@media (max-width: 860px) { .topbar { padding: 0 20px; } .top-nav { display: none; } main { padding: 40px 20px 22px; } .page-heading { align-items: start; flex-direction: column; } .dashboard-grid, .metrics { grid-template-columns: 1fr; } .metrics { grid-column: auto; } .prize-grid { grid-template-columns: 1fr 1fr; } .prize-grid-main, .prize-subgroups { grid-template-columns: 1fr; } .footer-note { padding-left: 20px; padding-right: 20px; } }
 @media (max-width: 860px) { .auto-prize-grid { grid-template-columns: 1fr; } }
 @media (max-width: 860px) { .ending-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 520px) { .brand { font-size: 16px; } .top-actions { gap: 4px; } .icon-button { display: none; } .year-picker select { padding-right: 8px; } .stat-value { font-size: 33px; } .prize-grid, .form-grid { grid-template-columns: 1fr; } .ending-grid { grid-template-columns: 1fr; } .dialog-card { padding: 22px; } }

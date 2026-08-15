@@ -90,10 +90,11 @@ const totalSpent = () => tickets().reduce((sum, ticket) => sum + spentAmount(tic
 const totalEarned = () => tickets().reduce((sum, ticket) => sum + earnedFor(ticket), 0);
 const el = id => document.getElementById(id);
 
+function cacheKey() { return `${STORAGE_KEY}-${currentNick}`; }
 function save() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  localStorage.setItem("mi-navidad-year", String(selectedYear));
   if (!currentNick) return;
+  localStorage.setItem(cacheKey(), JSON.stringify(data));
+  localStorage.setItem("mi-navidad-year", String(selectedYear));
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
     window.LoteriaAuth.saveData(currentNick, data).catch(error => console.error("Error guardando en Firestore", error));
@@ -137,9 +138,18 @@ function renderEndings() {
 }
 function renderPrizes() {
   const winning = current();
-  const single = [["first", "El Gordo", 400000], ["second", "Segundo premio", 125000], ["third", "Tercer premio", 50000]];
-  const field = (label, key, value, index = "") => `<label class="prize-card"><span class="stat-label">${label}</span><input class="prize-input" data-prize="${key}" data-index="${index}" value="${value || ""}" inputmode="numeric" maxlength="5" placeholder="00000"><p>${euro(key === "first" ? 400000 : key === "second" ? 125000 : key === "third" ? 50000 : key === "fourth" ? 20000 : 6000)} por décimo</p></label>`;
-  return `<div class="view-grid"><section class="panel"><div class="panel-heading"><div><h2>Premios principales de ${selectedYear}</h2><p>Introduce todos los números premiados y el cálculo se actualiza solo.</p></div></div><div class="prize-grid">${single.map(([key, label]) => field(label, key, winning[key])).join("")}${winning.fourth.map((value, index) => field(`Cuarto premio ${index + 1}`, "fourth", value, index)).join("")}${winning.fifth.map((value, index) => field(`Quinto premio ${index + 1}`, "fifth", value, index)).join("")}</div></section><section class="panel"><div class="panel-heading"><div><h2>Premios automáticos</h2><p>La app los calcula a partir de los números anteriores.</p></div></div><div class="auto-prize-grid"><div><strong>Aproximaciones</strong><span>Anterior y posterior del 1º, 2º y 3º premio</span></div><div><strong>Terminaciones</strong><span>2, 3 y 4 cifras del Gordo; 2 cifras del 2º y 3º; 3 cifras del 2º, 3º y 4º</span></div><div><strong>Reintegro</strong><span>Última cifra del Gordo</span></div><div><strong>Pedrea</strong><span>Se marca en cada décimo cuando se canta: 5 € por cada euro jugado</span></div></div></section></div>`;
+  const single = [["first", "El Gordo", 400000, "1º premio"], ["second", "Segundo premio", 125000, "2º premio"], ["third", "Tercer premio", 50000, "3º premio"]];
+  const field = (label, key, value, amount, tier, tag, index = "") => `<label class="prize-card prize-card--${tier}">${tag ? `<span class="prize-tag">${tag}</span>` : ""}<span class="stat-label">${label}</span><input class="prize-input" data-prize="${key}" data-index="${index}" value="${value || ""}" inputmode="numeric" maxlength="5" placeholder="00000"><p>${euro(amount)} por décimo</p></label>`;
+  return `<div class="view-grid">
+    <section class="panel"><div class="panel-heading"><div><h2>Premios principales de ${selectedYear}</h2><p>Introduce todos los números premiados y el cálculo se actualiza solo.</p></div></div>
+      <div class="prize-grid-main">${single.map(([key, label, amount, tag]) => field(label, key, winning[key], amount, key, tag)).join("")}</div>
+      <div class="prize-subgroups">
+        <div class="prize-group"><h3>Cuartos premios <span class="badge neutral">${winning.fourth.length}</span></h3><div class="prize-grid-minor">${winning.fourth.map((value, index) => field(`Cuarto premio ${index + 1}`, "fourth", value, 20000, "fourth", "", index)).join("")}</div></div>
+        <div class="prize-group"><h3>Quintos premios <span class="badge neutral">${winning.fifth.length}</span></h3><div class="prize-grid-minor">${winning.fifth.map((value, index) => field(`Quinto premio ${index + 1}`, "fifth", value, 6000, "fifth", "", index)).join("")}</div></div>
+      </div>
+    </section>
+    <section class="panel"><div class="panel-heading"><div><h2>Premios automáticos</h2><p>La app los calcula a partir de los números anteriores.</p></div></div><div class="auto-prize-grid"><div><strong>Aproximaciones</strong><span>Anterior y posterior del 1º, 2º y 3º premio</span></div><div><strong>Terminaciones</strong><span>2, 3 y 4 cifras del Gordo; 2 cifras del 2º y 3º; 3 cifras del 2º, 3º y 4º</span></div><div><strong>Reintegro</strong><span>Última cifra del Gordo</span></div><div><strong>Pedrea</strong><span>Se marca en cada décimo cuando se canta: 5 € por cada euro jugado</span></div></div></section>
+  </div>`;
 }
 function render() {
   renderYearOptions(); el("headingYear").textContent = selectedYear;
@@ -181,11 +191,11 @@ async function enterApp(nick) {
   localStorage.setItem("mi-navidad-user", nick);
   el("userLabel").textContent = nick;
   hideAuthScreen();
-  const cached = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+  const cached = JSON.parse(localStorage.getItem(cacheKey()) || "null");
   if (cached) { data = cached; render(); }
   try {
     const remote = await window.LoteriaAuth.loadData(nick);
-    data = remote || cached || structuredClone(demoData);
+    data = remote || structuredClone(demoData);
   } catch (error) {
     console.error("No se pudo cargar de Firestore", error);
     data = cached || structuredClone(demoData);
