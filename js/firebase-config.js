@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -16,9 +16,12 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
+// GitHub Pages sends a Cross-Origin-Opener-Policy header that breaks signInWithPopup, use redirect instead
+getRedirectResult(auth).catch(error => console.error("Error al completar el inicio de sesión", error));
+
 // Each signed-in user owns exactly one document: loteria/{uid}
 window.LoteriaAuth = {
-  signIn: () => signInWithPopup(auth, provider),
+  signIn: () => signInWithRedirect(auth, provider),
   signOut: () => signOut(auth),
   onChange: callback => onAuthStateChanged(auth, callback),
   loadData: async uid => {
