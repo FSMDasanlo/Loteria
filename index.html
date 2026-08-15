@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#16352f">
+  <title>Lotería de Navidad | Control anual</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#resumen" aria-label="Ir al resumen">
+        <span class="brand-mark">✦</span>
+        <span>Mi Navidad</span>
+      </a>
+      <nav class="top-nav" aria-label="Navegación principal">
+        <button class="nav-link active" data-view="resumen">Resumen</button>
+        <button class="nav-link" data-view="decimos">Mis décimos</button>
+        <button class="nav-link" data-view="terminaciones">Terminaciones</button>
+        <button class="nav-link" data-view="premios">Premios</button>
+      </nav>
+      <div class="top-actions">
+        <label class="year-picker">
+          <span class="sr-only">Año seleccionado</span>
+          <select id="yearSelect"></select>
+        </label>
+        <button class="icon-button" id="exportButton" title="Exportar datos" aria-label="Exportar datos">⇩</button>
+        <button class="avatar" title="Perfil">J</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="page-heading">
+        <div>
+          <p class="eyebrow">Campaña <span id="headingYear">2026</span></p>
+          <h1 id="viewTitle">Resumen de tu lotería</h1>
+          <p class="heading-copy">Todo lo que juegas, compartes y ganas, en un solo lugar.</p>
+        </div>
+        <button class="primary-button" id="addTicketButton"><span>＋</span> Añadir décimo</button>
+      </section>
+
+      <div id="appContent"></div>
+    </main>
+
+    <footer class="footer-note">Los datos se guardan solo en este navegador · <button id="resetButton">Restablecer datos de ejemplo</button></footer>
+  </div>
+
+  <dialog id="ticketDialog">
+    <form method="dialog" id="ticketForm" class="dialog-card">
+      <div class="dialog-heading">
+        <div><p class="eyebrow">Nuevo registro</p><h2>Añadir décimo</h2></div>
+        <button type="button" class="close-button" id="closeDialog" aria-label="Cerrar">×</button>
+      </div>
+      <div class="form-grid">
+        <label>Número<input name="number" inputmode="numeric" maxlength="5" placeholder="00000" required></label>
+        <label>Origen<input name="origin" placeholder="Administración, peña, Ana..."></label>
+        <label>Importe jugado<input name="amount" type="number" min="0.01" step="0.01" placeholder="20" required></label>
+        <label>Comisión<input name="commission" type="number" min="0" step="0.01" placeholder="0"></label>
+        <label>Dado<input name="given" type="number" min="0" step="0.01" placeholder="0"></label>
+        <label>Recibido<input name="received" type="number" min="0" step="0.01" placeholder="0"></label>
+        <label>Persona / intercambio<input name="person" placeholder="Ej. Ana"></label>
+        <label>Notas<input name="note" placeholder="Peña, administración..." ></label>
+      </div>
+      <p class="form-help">Gastado = importe jugado + comisión - recibido. El premio siempre se calcula sobre el importe jugado.</p>
+      <div class="dialog-actions"><button type="button" class="secondary-button" id="cancelDialog">Cancelar</button><button class="primary-button" value="default">Guardar décimo</button></div>
+    </form>
+  </dialog>
+  <script src="js/app.js"></script>
+</body>
+</html>
