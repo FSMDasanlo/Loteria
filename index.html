@@ -11,7 +11,15 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <div class="app-shell">
+  <div class="auth-screen" id="authScreen">
+    <div class="auth-card">
+      <span class="brand-mark">✦</span>
+      <h1>Mi Navidad</h1>
+      <p>Inicia sesión para ver y guardar tus décimos.</p>
+      <button class="primary-button" id="googleSignInButton">Continuar con Google</button>
+    </div>
+  </div>
+  <div class="app-shell" id="appRoot" hidden>
     <header class="topbar">
       <a class="brand" href="#resumen" aria-label="Ir al resumen">
         <span class="brand-mark">✦</span>
@@ -29,7 +37,8 @@
           <select id="yearSelect"></select>
         </label>
         <button class="icon-button" id="exportButton" title="Exportar datos" aria-label="Exportar datos">⇩</button>
-        <button class="avatar" title="Perfil">J</button>
+        <span class="user-label" id="userLabel"></span>
+        <button class="avatar" id="signOutButton" title="Cerrar sesión">⏻</button>
       </div>
     </header>
 
@@ -69,6 +78,7 @@
       <div class="dialog-actions"><button type="button" class="secondary-button" id="cancelDialog">Cancelar</button><button class="primary-button" value="default">Guardar décimo</button></div>
     </form>
   </dialog>
+  <script type="module" src="js/firebase-config.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

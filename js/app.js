@@ -38,9 +38,11 @@ const demoData = {
   }
 };
 
-let data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null") || structuredClone(demoData);
+let data = structuredClone(demoData);
 let selectedYear = Number(localStorage.getItem("mi-navidad-year") || 2026);
 let currentView = "resumen";
+let currentUser = null;
+let saveTimer = null;
 
 const euro = value => new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 2 }).format(value || 0);
 const pad = value => String(value || "").replace(/\D/g, "").slice(0, 5).padStart(5, "0");
@@ -88,7 +90,15 @@ const totalSpent = () => tickets().reduce((sum, ticket) => sum + spentAmount(tic
 const totalEarned = () => tickets().reduce((sum, ticket) => sum + earnedFor(ticket), 0);
 const el = id => document.getElementById(id);
 
-function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); localStorage.setItem("mi-navidad-year", String(selectedYear)); }
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  localStorage.setItem("mi-navidad-year", String(selectedYear));
+  if (!currentUser) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    window.LoteriaAuth.saveData(currentUser.uid, data).catch(error => console.error("Error guardando en Firestore", error));
+  }, 600);
+}
 function renderYearOptions() {
   const years = [...new Set([...Object.keys(data).map(Number), 2026, 2025])].sort((a, b) => b - a);
   el("yearSelect").innerHTML = years.map(year => `<option value="${year}" ${year === selectedYear ? "selected" : ""}>${year}</option>`).join("");
@@ -161,4 +171,28 @@ el("addTicketButton").addEventListener("click", openDialog); el("cancelDialog").
 el("ticketForm").addEventListener("submit", event => { event.preventDefault(); const form = new FormData(event.target); tickets().push({ number: pad(form.get("number")), origin: String(form.get("origin") || ""), amount: Number(form.get("amount")), commission: Number(form.get("commission") || 0), given: Number(form.get("given") || 0), received: Number(form.get("received") || 0), person: String(form.get("person") || ""), note: String(form.get("note") || ""), pedrea: false }); save(); closeDialog(); currentView = "decimos"; render(); });
 el("resetButton").addEventListener("click", () => { data = structuredClone(demoData); selectedYear = 2026; save(); render(); });
 el("exportButton").addEventListener("click", () => { const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `mi-navidad-${selectedYear}.json`; link.click(); URL.revokeObjectURL(link.href); });
-render();
+
+function showAuthScreen() { el("authScreen").hidden = false; el("appRoot").hidden = true; }
+function hideAuthScreen() { el("authScreen").hidden = true; el("appRoot").hidden = false; }
+
+el("googleSignInButton").addEventListener("click", () => {
+  window.LoteriaAuth.signIn().catch(error => alert("Error al iniciar sesión: " + error.message));
+});
+el("signOutButton").addEventListener("click", () => window.LoteriaAuth.signOut());
+
+window.LoteriaAuth.onChange(async user => {
+  currentUser = user;
+  if (!user) { showAuthScreen(); return; }
+  hideAuthScreen();
+  el("userLabel").textContent = user.displayName || user.email || "";
+  const cached = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+  if (cached) { data = cached; render(); }
+  try {
+    const remote = await window.LoteriaAuth.loadData(user.uid);
+    data = remote || cached || structuredClone(demoData);
+  } catch (error) {
+    console.error("No se pudo cargar de Firestore", error);
+    data = cached || structuredClone(demoData);
+  }
+  render();
+});
