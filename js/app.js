@@ -19,21 +19,34 @@ const demoData = {
   2025: {
     first: "79432", second: "70048", third: "90693", fourth: ["78477", ""], fifth: ["25508", "", "", "", "", "", "", ""], pedrea: [],
     tickets: [
-      { number: "23112", amount: 20, person: "Yo", note: "Administración", origin: "Administración", commission: 0, given: 0, received: 0, shared: false },
-      { number: "60649", amount: 20, person: "María", note: "Intercambio", origin: "María", commission: 0, given: 0, received: 20, shared: true },
-      { number: "77715", amount: 20, person: "Carlos", note: "Intercambio", origin: "Carlos", commission: 0, given: 0, received: 20, shared: true },
-      { number: "25412", amount: 20, person: "Yo", note: "Peña familiar", origin: "Peña familiar", commission: 0, given: 0, received: 0, shared: false },
-      { number: "61366", amount: 20, person: "Ana", note: "Intercambio", origin: "Ana", commission: 0, given: 0, received: 20, shared: true },
-      { number: "41716", amount: 20, person: "Yo", note: "Administración", origin: "Administración", commission: 0, given: 0, received: 0, shared: false },
-      { number: "18669", amount: 20, person: "Luis", note: "Intercambio", origin: "Luis", commission: 0, given: 0, received: 20, shared: true },
-      { number: "80389", amount: 20, person: "Yo", note: "Administración", origin: "Administración", commission: 0, given: 0, received: 0, shared: false },
-      { number: "44356", amount: 20, person: "Sonia", note: "Intercambio", origin: "Sonia", commission: 0, given: 0, received: 20, shared: true },
-      { number: "93240", amount: 20, person: "Yo", note: "Administración", origin: "Administración", commission: 0, given: 0, received: 0, shared: false },
-      { number: "39183", amount: 20, person: "Yo", note: "Administración", origin: "Administración", commission: 0, given: 0, received: 0, shared: false },
-      { number: "12072", amount: 20, person: "Papeleta", note: "Peña", origin: "Peña", commission: 0, given: 0, received: 20, shared: true },
-      { number: "86109", amount: 16.8, person: "Yo", note: "Participación", origin: "Participación", commission: 0, given: 0, received: 0, shared: false },
-      { number: "26278", amount: 5, person: "Yo", note: "Participación", origin: "Participación", commission: 0, given: 0, received: 0, shared: false },
-      { number: "80680", amount: 5, person: "Yo", note: "Participación", origin: "Participación", commission: 0, given: 0, received: 0, shared: false }
+      { number: "18458", origin: "NEO", amount: 20 },
+      { number: "35917", origin: "WEB - COMPARTIDO", amount: 60 },
+      { number: "45694", origin: "WEB -", amount: 20 },
+      { number: "55917", origin: "EL TROPEZON", amount: 20 },
+      { number: "41841", origin: "ugt", amount: 2 },
+      { number: "89956", origin: "ugt", amount: 2 },
+      { number: "80389", origin: "telefonica", amount: 20 },
+      { number: "44356", origin: "polideportivo", amount: 20 },
+      { number: "93240", origin: "telefonica", amount: 20 },
+      { number: "39183", origin: "web santa engracia", amount: 20 },
+      { number: "12072", origin: "Iglesia", amount: 20 },
+      { number: "86109", origin: "Asoc. Cultural.san francisco", amount: 16.8 },
+      { number: "26278", origin: "inma", amount: 5 },
+      { number: "80680", origin: "jose", amount: 5 },
+      { number: "70990", origin: "iquivia sandra", amount: 10 },
+      { number: "81696", origin: "iquivia sandra", amount: 10 },
+      { number: "53747", origin: "Sandra compartido familia 5€", amount: 5 },
+      { number: "42514", origin: "dani (compartido familia 5€)", amount: 5 },
+      { number: "24395", origin: "belen", amount: 5 },
+      { number: "66331", origin: "Lorena (compartido Lorena)", amount: 5 },
+      { number: "38642", origin: "Paco", amount: 4 },
+      { number: "62446", origin: "Gelo", amount: 4 },
+      { number: "86932", origin: "Nandi", amount: 4 },
+      { number: "98831", origin: "Oscar", amount: 4 },
+      { number: "52523", origin: "Lorena y Luis", amount: 20 },
+      { number: "43827", origin: "ohl", amount: 10 },
+      { number: "06994", origin: "morella", amount: 20 },
+      { number: "51182", origin: "evelio", amount: 10 }
     ]
   }
 };
@@ -43,6 +56,8 @@ let selectedYear = Number(localStorage.getItem("mi-navidad-year") || 2026);
 let currentView = "resumen";
 let currentNick = null;
 let saveTimer = null;
+let sortTicketsByNumber = false;
+let editTicketIndex = null;
 
 const euro = value => new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 2 }).format(value || 0);
 const pad = value => String(value || "").replace(/\D/g, "").slice(0, 5).padStart(5, "0");
@@ -89,6 +104,7 @@ const totalPlayed = () => tickets().reduce((sum, ticket) => sum + Number(ticket.
 const totalSpent = () => tickets().reduce((sum, ticket) => sum + spentAmount(ticket), 0);
 const totalEarned = () => tickets().reduce((sum, ticket) => sum + earnedFor(ticket), 0);
 const el = id => document.getElementById(id);
+const emptyYear = () => ({ first: "", second: "", third: "", fourth: ["", ""], fifth: ["", "", "", "", "", "", "", ""], pedrea: [], tickets: [] });
 
 function cacheKey() { return `${STORAGE_KEY}-${currentNick}`; }
 function save() {
@@ -101,7 +117,7 @@ function save() {
   }, 600);
 }
 function renderYearOptions() {
-  const years = [...new Set([...Object.keys(data).map(Number), 2026, 2025])].sort((a, b) => b - a);
+  const years = [...new Set([...Object.keys(data).filter(key => /^\d{4}$/.test(key)).map(Number), 2026, 2025])].sort((a, b) => b - a);
   el("yearSelect").innerHTML = years.map(year => `<option value="${year}" ${year === selectedYear ? "selected" : ""}>${year}</option>`).join("");
 }
 function prizeSummary() {
@@ -126,7 +142,9 @@ function renderSummary() {
   </div>`;
 }
 function renderTickets() {
-  return `<div class="view-grid"><section class="panel"><div class="panel-heading"><div><h2>Mis décimos y participaciones</h2><p>${tickets().length} registros · ${euro(totalSpent())} gastados · ${euro(totalPlayed())} jugados</p></div></div><div class="table-wrap"><table class="ticket-table"><thead><tr><th>Número</th><th>Origen</th><th>Importe jugado</th><th>Gastado</th><th>Comisión</th><th>Dado</th><th>Recibido</th><th>Pedrea</th><th>Premio total</th><th>Premio sin impuestos</th><th></th></tr></thead><tbody>${tickets().length ? tickets().map((ticket, index) => { const gross = prizeMatches(ticket).reduce((sum, prize) => sum + prize.gross * (Number(ticket.amount || 0) / 20), 0); const net = earnedFor(ticket); return `<tr class="${Number(ticket.given || 0) > 0 ? "shared-row" : ""}"><td class="number-cell">${ticket.number}</td><td>${ticket.origin || "—"}</td><td class="money-cell">${euro(ticket.amount)}</td><td class="money-cell strong-cell">${euro(spentAmount(ticket))}</td><td class="money-cell">${euro(ticket.commission)}</td><td class="money-cell">${euro(ticket.given)}</td><td class="money-cell">${euro(ticket.received)}</td><td><label class="pedrea-check"><input type="checkbox" data-ticket-pedrea="${index}" ${ticket.pedrea ? "checked" : ""}> <span>Cantado</span></label></td><td class="money-cell ${gross ? "positive" : ""}">${gross ? euro(gross) : "—"}</td><td class="money-cell ${net ? "positive" : ""}">${net ? `<strong>${euro(net)}</strong><small class="prize-detail">${prizeLabel(ticket)}</small>` : "—"}</td><td><button class="link-button" data-delete-ticket="${index}" title="Eliminar décimo">Eliminar</button></td></tr>`; }).join("") : `<tr><td colspan="11">${empty("Añade tu primer décimo para empezar.")}</td></tr>`}</tbody></table></div></section></div>`;
+  const listedTickets = tickets().map((ticket, index) => ({ ticket, index }));
+  if (sortTicketsByNumber) listedTickets.sort((a, b) => Number(a.ticket.number) - Number(b.ticket.number));
+  return `<div class="view-grid"><section class="panel"><div class="panel-heading"><div><h2>Mis décimos y participaciones</h2><p>${tickets().length} registros · ${euro(totalSpent())} gastados · ${euro(totalPlayed())} jugados</p></div></div><div class="table-wrap"><table class="ticket-table"><thead><tr><th aria-sort="${sortTicketsByNumber ? "ascending" : "none"}"><button class="table-sort-button" type="button" data-sort-tickets>Número ${sortTicketsByNumber ? "↑" : "↕"}</button></th><th>Origen</th><th>Importe jugado</th><th>Gastado</th><th>Comisión</th><th>Dado</th><th>Recibido</th><th>Pedrea</th><th>Premio total</th><th>Premio sin impuestos</th><th>Acciones</th></tr></thead><tbody>${listedTickets.length ? listedTickets.map(({ ticket, index }) => { const gross = prizeMatches(ticket).reduce((sum, prize) => sum + prize.gross * (Number(ticket.amount || 0) / 20), 0); const net = earnedFor(ticket); return `<tr class="${Number(ticket.given || 0) > 0 ? "shared-row" : ""}"><td class="number-cell">${ticket.number}</td><td>${ticket.origin || "—"}</td><td class="money-cell">${euro(ticket.amount)}</td><td class="money-cell strong-cell">${euro(spentAmount(ticket))}</td><td class="money-cell">${euro(ticket.commission)}</td><td class="money-cell">${euro(ticket.given)}</td><td class="money-cell">${euro(ticket.received)}</td><td><label class="pedrea-check"><input type="checkbox" data-ticket-pedrea="${index}" ${ticket.pedrea ? "checked" : ""}> <span>Cantado</span></label></td><td class="money-cell ${gross ? "positive" : ""}">${gross ? euro(gross) : "—"}</td><td class="money-cell ${net ? "positive" : ""}">${net ? `<strong>${euro(net)}</strong><small class="prize-detail">${prizeLabel(ticket)}</small>` : "—"}</td><td class="ticket-actions"><button class="action-button" type="button" data-edit-ticket="${index}" title="Editar décimo" aria-label="Editar décimo">&#9998;</button><button class="action-button danger" type="button" data-delete-ticket="${index}" title="Eliminar décimo" aria-label="Eliminar décimo">&#128465;</button></td></tr>`; }).join("") : `<tr><td colspan="11">${empty("Añade tu primer décimo para empezar.")}</td></tr>`}</tbody></table></div></section></div>`;
 }
 function renderEndings() {
   const endings = Array.from({ length: 10 }, (_, ending) => {
@@ -157,8 +175,10 @@ function render() {
   el("viewTitle").textContent = labels[currentView];
   el("appContent").innerHTML = currentView === "resumen" ? renderSummary() : currentView === "decimos" ? renderTickets() : currentView === "terminaciones" ? renderEndings() : renderPrizes();
   document.querySelectorAll(".nav-link").forEach(button => button.classList.toggle("active", button.dataset.view === currentView));
-  document.querySelectorAll("[data-view]").forEach(button => button.addEventListener("click", () => { currentView = button.dataset.view; render(); }));
+  document.querySelectorAll("#appContent [data-view]").forEach(button => button.addEventListener("click", () => { currentView = button.dataset.view; render(); }));
   document.querySelectorAll("[data-add-ticket]").forEach(button => button.addEventListener("click", openDialog));
+  document.querySelectorAll("[data-sort-tickets]").forEach(button => button.addEventListener("click", () => { sortTicketsByNumber = true; render(); }));
+  document.querySelectorAll("[data-edit-ticket]").forEach(button => button.addEventListener("click", () => openEditDialog(Number(button.dataset.editTicket))));
   document.querySelectorAll("[data-delete-ticket]").forEach(button => button.addEventListener("click", () => { tickets().splice(Number(button.dataset.deleteTicket), 1); save(); render(); }));
   document.querySelectorAll("[data-ticket-pedrea]").forEach(input => input.addEventListener("change", event => {
     tickets()[Number(event.target.dataset.ticketPedrea)].pedrea = event.target.checked;
@@ -173,18 +193,57 @@ function render() {
     save();
   }));
 }
-function openDialog() { el("ticketDialog").showModal(); el("ticketForm").reset(); }
+function openDialog() {
+  editTicketIndex = null;
+  el("ticketForm").reset();
+  el("ticketDialogTitle").textContent = "Añadir décimo";
+  el("ticketSubmitButton").textContent = "Guardar décimo";
+  el("ticketDialog").showModal();
+}
+function openEditDialog(index) {
+  const ticket = tickets()[index];
+  if (!ticket) return;
+  editTicketIndex = index;
+  const form = el("ticketForm");
+  form.elements.number.value = ticket.number || "";
+  form.elements.origin.value = ticket.origin || "";
+  form.elements.amount.value = ticket.amount ?? "";
+  form.elements.commission.value = ticket.commission ?? 0;
+  form.elements.given.value = ticket.given ?? 0;
+  form.elements.received.value = ticket.received ?? 0;
+  form.elements.person.value = ticket.person || "";
+  form.elements.note.value = ticket.note || "";
+  el("ticketDialogTitle").textContent = "Editar décimo";
+  el("ticketSubmitButton").textContent = "Guardar cambios";
+  el("ticketDialog").showModal();
+}
 function closeDialog() { el("ticketDialog").close(); }
+function openYearDialog() {
+  el("yearForm").reset();
+  el("yearFormError").hidden = true;
+  el("yearDialog").showModal();
+}
+function closeYearDialog() { el("yearDialog").close(); }
 el("yearSelect").addEventListener("change", event => { selectedYear = Number(event.target.value); save(); render(); });
 document.querySelectorAll(".nav-link").forEach(button => button.addEventListener("click", () => { currentView = button.dataset.view; render(); }));
 el("addTicketButton").addEventListener("click", openDialog); el("cancelDialog").addEventListener("click", closeDialog); el("closeDialog").addEventListener("click", closeDialog);
-el("ticketForm").addEventListener("submit", event => { event.preventDefault(); const form = new FormData(event.target); tickets().push({ number: pad(form.get("number")), origin: String(form.get("origin") || ""), amount: Number(form.get("amount")), commission: Number(form.get("commission") || 0), given: Number(form.get("given") || 0), received: Number(form.get("received") || 0), person: String(form.get("person") || ""), note: String(form.get("note") || ""), pedrea: false }); save(); closeDialog(); currentView = "decimos"; render(); });
-el("resetButton").addEventListener("click", () => { data = structuredClone(demoData); selectedYear = 2026; save(); render(); });
+el("addYearButton").addEventListener("click", openYearDialog); el("cancelYearDialog").addEventListener("click", closeYearDialog); el("closeYearDialog").addEventListener("click", closeYearDialog);
+el("ticketForm").addEventListener("submit", event => { event.preventDefault(); const form = new FormData(event.target); const ticket = { number: pad(form.get("number")), origin: String(form.get("origin") || ""), amount: Number(form.get("amount")), commission: Number(form.get("commission") || 0), given: Number(form.get("given") || 0), received: Number(form.get("received") || 0), person: String(form.get("person") || ""), note: String(form.get("note") || "") }; const ticketList = current().tickets; if (editTicketIndex === null) ticketList.push({ ...ticket, pedrea: false }); else ticketList[editTicketIndex] = { ...ticketList[editTicketIndex], ...ticket }; editTicketIndex = null; save(); closeDialog(); currentView = "decimos"; render(); });
+el("yearForm").addEventListener("submit", event => { event.preventDefault(); const year = Number(new FormData(event.target).get("year")); const error = el("yearFormError"); if (!Number.isInteger(year) || year < 1900 || year > 2100) { error.textContent = "Introduce un año entre 1900 y 2100."; error.hidden = false; return; } if (data[year]) { error.textContent = "Ese año ya existe."; error.hidden = false; return; } data[year] = emptyYear(); selectedYear = year; save(); closeYearDialog(); render(); });
 el("exportButton").addEventListener("click", () => { const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `mi-navidad-${selectedYear}.json`; link.click(); URL.revokeObjectURL(link.href); });
 
 function showAuthScreen() { el("authScreen").hidden = false; el("appRoot").hidden = true; }
 function hideAuthScreen() { el("authScreen").hidden = true; el("appRoot").hidden = false; }
 function setAuthError(message) { const box = el("authError"); box.textContent = message || ""; box.hidden = !message; }
+function migrateJesusSrTickets() {
+  if (currentNick.toLowerCase() !== "jesussr") return false;
+  data._migrations = data._migrations || {};
+  if (data._migrations.jesusSr2025TicketsResetV3) return false;
+  data[2025] = data[2025] || structuredClone(demoData[2025]);
+  data[2025].tickets = structuredClone(demoData[2025].tickets);
+  data._migrations.jesusSr2025TicketsResetV3 = true;
+  return true;
+}
 
 async function enterApp(nick) {
   currentNick = nick;
@@ -200,6 +259,7 @@ async function enterApp(nick) {
     console.error("No se pudo cargar de Firestore", error);
     data = cached || structuredClone(demoData);
   }
+  if (migrateJesusSrTickets()) save();
   render();
 }
 

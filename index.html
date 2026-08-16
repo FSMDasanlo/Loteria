@@ -13,6 +13,7 @@
 <body>
   <div class="auth-screen" id="authScreen">
     <form class="auth-card" id="loginForm">
+      <img class="auth-illustration" src="img/loteria.png" alt="Lotería de Navidad">
       <span class="brand-mark">✦</span>
       <h1>Mi lotería</h1>
       <p>Entra con tu usuario para ver y guardar tus décimos.</p>
@@ -27,7 +28,7 @@
     <header class="topbar">
       <a class="brand" href="#resumen" aria-label="Ir al resumen">
         <span class="brand-mark">✦</span>
-        <span>Mi Navidad</span>
+        <span>Mi loteria Navideña</span>
       </a>
       <nav class="top-nav" aria-label="Navegación principal">
         <button class="nav-link active" data-view="resumen">Resumen</button>
@@ -40,6 +41,7 @@
           <span class="sr-only">Año seleccionado</span>
           <select id="yearSelect"></select>
         </label>
+        <button class="year-add-button" id="addYearButton" type="button" title="Crear nuevo año">＋ Año</button>
         <button class="icon-button" id="exportButton" title="Exportar datos" aria-label="Exportar datos">⇩</button>
         <span class="user-label" id="userLabel"></span>
         <button class="avatar" id="signOutButton" title="Cerrar sesión">⏻</button>
@@ -53,19 +55,31 @@
           <h1 id="viewTitle">Resumen de tu lotería</h1>
           <p class="heading-copy">Todo lo que juegas, compartes y ganas, en un solo lugar.</p>
         </div>
+        <img class="page-heading-image" src="img/decimo.jpg" alt="Décimo de lotería">
         <button class="primary-button" id="addTicketButton"><span>＋</span> Añadir décimo</button>
       </section>
 
       <div id="appContent"></div>
     </main>
 
-    <footer class="footer-note">Los datos se guardan solo en este navegador · <button id="resetButton">Restablecer datos de ejemplo</button></footer>
   </div>
+
+  <dialog id="yearDialog">
+    <form method="dialog" id="yearForm" class="dialog-card year-dialog-card">
+      <div class="dialog-heading">
+        <div><p class="eyebrow">Nueva campaña</p><h2>Crear año</h2></div>
+        <button type="button" class="close-button" id="closeYearDialog" aria-label="Cerrar">×</button>
+      </div>
+      <label class="year-form-field">Año<input name="year" type="number" min="1900" max="2100" step="1" placeholder="2027" required></label>
+      <p class="form-help" id="yearFormError" hidden></p>
+      <div class="dialog-actions"><button type="button" class="secondary-button" id="cancelYearDialog">Cancelar</button><button class="primary-button" value="default">Crear año</button></div>
+    </form>
+  </dialog>
 
   <dialog id="ticketDialog">
     <form method="dialog" id="ticketForm" class="dialog-card">
       <div class="dialog-heading">
-        <div><p class="eyebrow">Nuevo registro</p><h2>Añadir décimo</h2></div>
+        <div><p class="eyebrow">Registro</p><h2 id="ticketDialogTitle">Añadir décimo</h2></div>
         <button type="button" class="close-button" id="closeDialog" aria-label="Cerrar">×</button>
       </div>
       <div class="form-grid">
@@ -79,7 +93,7 @@
         <label>Notas<input name="note" placeholder="Peña, administración..." ></label>
       </div>
       <p class="form-help">Gastado = importe jugado + comisión - recibido. El premio siempre se calcula sobre el importe jugado.</p>
-      <div class="dialog-actions"><button type="button" class="secondary-button" id="cancelDialog">Cancelar</button><button class="primary-button" value="default">Guardar décimo</button></div>
+      <div class="dialog-actions"><button type="button" class="secondary-button" id="cancelDialog">Cancelar</button><button class="primary-button" id="ticketSubmitButton" value="default">Guardar décimo</button></div>
     </form>
   </dialog>
   <script type="module" src="js/firebase-config.js"></script>
