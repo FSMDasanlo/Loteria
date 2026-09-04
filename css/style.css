@@ -67,7 +67,6 @@ h3 { margin: 0; font: 700 18px "Space Grotesk", sans-serif; }
 .panel { padding: 24px; }
 .panel-heading { display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 22px; }
 .panel-heading p { color: var(--muted); margin: 4px 0 0; font-size: 13px; }
-.page-heading-image { width: 220px; height: 145px; flex: 0 0 auto; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); box-shadow: var(--shadow); }
 .link-button { border: 0; padding: 0; color: var(--green); background: transparent; font-size: 13px; font-weight: 700; }
 .table-sort-button { border: 0; padding: 0; color: inherit; background: transparent; font: inherit; letter-spacing: inherit; text-transform: inherit; }
 .table-sort-button:hover, .table-sort-button:focus-visible { color: var(--green); }
