@@ -89,6 +89,16 @@ h3 { margin: 0; font: 700 18px "Space Grotesk", sans-serif; }
 .positive { color: var(--green); }
 .coral { color: var(--coral); }
 .view-grid { display: grid; gap: 18px; min-width: 0; }
+.prize-overview { display: grid; grid-template-columns: minmax(180px, .7fr) 1.3fr; align-items: center; gap: 24px; padding: 25px 28px; color: white; background: var(--green-dark); border: 1px solid var(--green-dark); border-radius: 8px; box-shadow: var(--shadow); }
+.prize-overview-heading .eyebrow { display: block; margin-bottom: 8px; color: #c6dfd1; }
+.prize-overview-heading h2 { font-size: 22px; }
+.prize-overview-totals { display: grid; grid-template-columns: 1fr 1fr; }
+.prize-overview-totals > div { display: grid; gap: 5px; padding: 2px 22px; }
+.prize-overview-totals > div + div { border-left: 1px solid rgba(255,255,255,.24); }
+.prize-overview-totals span { color: #c6dfd1; font-size: 13px; font-weight: 600; }
+.prize-overview-totals strong { font: 700 30px "Space Grotesk", sans-serif; font-variant-numeric: tabular-nums; }
+.prize-overview-totals small { color: #d1e7dc; font-size: 12px; }
+.prize-overview-earned strong { color: #f0c978; }
 .ending-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
 .ending-card { min-height: 116px; padding: 16px; display: flex; align-items: center; gap: 13px; border: 1px solid var(--line); border-radius: 7px; background: #f4f5ef; }
 .ending-card.ending-covered { color: var(--green-dark); background: var(--mint); border-color: #c6dfd1; }
@@ -180,6 +190,7 @@ dialog::backdrop { background: rgba(22,53,47,.45); backdrop-filter: blur(4px); }
   .metrics { grid-column: auto; }
   .prize-grid { grid-template-columns: 1fr 1fr; }
   .prize-grid-main, .prize-subgroups { grid-template-columns: 1fr; }
+  .prize-overview { grid-template-columns: 1fr; gap: 18px; }
   .bottom-nav {
     display: flex;
     position: fixed;
@@ -217,6 +228,11 @@ dialog::backdrop { background: rgba(22,53,47,.45); backdrop-filter: blur(4px); }
   .year-add-button { padding: 8px 9px; font-size: 12px; }
   .avatar { width: 30px; height: 30px; }
   .stat-value { font-size: 33px; }
+  .prize-overview { padding: 21px; }
+  .prize-overview-totals { grid-template-columns: 1fr; gap: 15px; }
+  .prize-overview-totals > div { padding: 0; }
+  .prize-overview-totals > div + div { padding-top: 15px; border-top: 1px solid rgba(255,255,255,.24); border-left: 0; }
+  .prize-overview-totals strong { font-size: 27px; }
   .prize-grid, .form-grid { grid-template-columns: 1fr; }
   .ending-grid { grid-template-columns: 1fr; }
   .dialog-card { padding: 22px; }

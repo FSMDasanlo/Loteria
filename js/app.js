@@ -73,7 +73,7 @@ const current = () => {
   return year;
 };
 const tickets = () => current().tickets || [];
-const spentAmount = ticket => Math.max(0, Number(ticket.amount || 0) + Number(ticket.commission || 0) - Number(ticket.received || 0));
+const spentAmount = ticket => Math.max(0, Number(ticket.amount || 0) + Number(ticket.given || 0) + Number(ticket.commission || 0) - Number(ticket.received || 0));
 const netPrize = gross => gross <= 40000 ? gross : 40000 + (gross - 40000) * 0.8;
 const prizeMatches = ticket => {
   const winning = current();
@@ -159,6 +159,13 @@ function renderPrizes() {
   const single = [["first", "El Gordo", 400000, "1º premio"], ["second", "Segundo premio", 125000, "2º premio"], ["third", "Tercer premio", 50000, "3º premio"]];
   const field = (label, key, value, amount, tier, tag, index = "") => `<label class="prize-card prize-card--${tier}">${tag ? `<span class="prize-tag">${tag}</span>` : ""}<span class="stat-label">${label}</span><input class="prize-input" data-prize="${key}" data-index="${index}" value="${value || ""}" inputmode="numeric" maxlength="5" placeholder="00000"><p>${euro(amount)} por décimo</p></label>`;
   return `<div class="view-grid">
+    <section class="prize-overview" aria-label="Balance de premios de ${selectedYear}">
+      <div class="prize-overview-heading"><span class="eyebrow">Balance de campaña · ${selectedYear}</span><h2>Tu lotería, en cifras</h2></div>
+      <div class="prize-overview-totals">
+        <div><span>Total jugado</span><strong>${euro(totalPlayed())}</strong><small>Importe jugado en tus décimos</small></div>
+        <div class="prize-overview-earned"><span>Premios obtenidos</span><strong id="prizeEarnedTotal">${euro(totalEarned())}</strong><small>Estimación neta según resultados introducidos</small></div>
+      </div>
+    </section>
     <section class="panel"><div class="panel-heading"><div><h2>Premios principales de ${selectedYear}</h2><p>Introduce todos los números premiados y el cálculo se actualiza solo.</p></div></div>
       <div class="prize-grid-main">${single.map(([key, label, amount, tag]) => field(label, key, winning[key], amount, key, tag)).join("")}</div>
       <div class="prize-subgroups">
@@ -190,6 +197,7 @@ function render() {
     if (key === "pedrea") current().pedrea = event.target.value.split(/[\s,;]+/).map(pad).filter(validNumber);
     else if (event.target.dataset.index !== "") current()[key][Number(event.target.dataset.index)] = event.target.value.replace(/\D/g, "").slice(0, 5);
     else current()[key] = pad(event.target.value);
+    el("prizeEarnedTotal").textContent = euro(totalEarned());
     save();
   }));
 }
