@@ -27,9 +27,23 @@ function randomSalt() {
 
 window.LoteriaAuth = {
   // Sesión anónima de Firebase, solo para satisfacer las reglas de Firestore (auth != null)
-  ready: () => new Promise(resolve => {
-    onAuthStateChanged(auth, user => { if (user) resolve(user); });
-    signInAnonymously(auth).catch(error => console.error("Error de sesión anónima", error));
+  ready: () => new Promise((resolve, reject) => {
+    let unsubscribe = () => {};
+    let settled = false;
+    const fail = error => {
+      if (settled) return;
+      settled = true;
+      unsubscribe();
+      console.error("Error de sesión anónima", error);
+      reject(error);
+    };
+    unsubscribe = onAuthStateChanged(auth, user => {
+      if (!user || settled) return;
+      settled = true;
+      unsubscribe();
+      resolve(user);
+    }, fail);
+    signInAnonymously(auth).catch(fail);
   }),
   register: async (nick, password) => {
     const ref = doc(db, "usuarios", nick);

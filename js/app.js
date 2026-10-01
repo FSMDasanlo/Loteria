@@ -19,7 +19,6 @@ const demoData = {
   2025: {
     first: "79432", second: "70048", third: "90693", fourth: ["78477", ""], fifth: ["25508", "", "", "", "", "", "", ""], pedrea: [],
     tickets: [
-      { number: "18458", origin: "NEO", amount: 20 },
       { number: "35917", origin: "WEB - COMPARTIDO", amount: 60 },
       { number: "45694", origin: "WEB -", amount: 20 },
       { number: "55917", origin: "EL TROPEZON", amount: 20 },
@@ -56,7 +55,8 @@ let selectedYear = Number(localStorage.getItem("mi-navidad-year") || 2026);
 let currentView = "resumen";
 let currentNick = null;
 let saveTimer = null;
-let sortTicketsByNumber = false;
+let ticketSortKey = null;
+let ticketSortDirection = 1;
 let editTicketIndex = null;
 
 const euro = value => new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 2 }).format(value || 0);
@@ -99,6 +99,7 @@ const prizeMatches = ticket => {
   return matches;
 };
 const earnedFor = ticket => prizeMatches(ticket).reduce((sum, prize) => sum + netPrize(prize.gross * (Number(ticket.amount || 0) / 20)), 0);
+const grossPrizeFor = ticket => prizeMatches(ticket).reduce((sum, prize) => sum + prize.gross * (Number(ticket.amount || 0) / 20), 0);
 const prizeLabel = ticket => prizeMatches(ticket).map(prize => prize.label).join(" + ");
 const totalPlayed = () => tickets().reduce((sum, ticket) => sum + Number(ticket.amount || 0), 0);
 const totalSpent = () => tickets().reduce((sum, ticket) => sum + spentAmount(ticket), 0);
@@ -143,7 +144,31 @@ function renderSummary() {
 }
 function renderTickets() {
   const listedTickets = tickets().map((ticket, index) => ({ ticket, index }));
-  if (sortTicketsByNumber) listedTickets.sort((a, b) => Number(a.ticket.number) - Number(b.ticket.number));
+  const sortTicketsByNumber = ticketSortKey === "number" && ticketSortDirection === 1;
+  if (ticketSortKey) {
+    const sortValue = ticket => {
+      switch (ticketSortKey) {
+        case "number": return Number(ticket.number);
+        case "origin": return ticket.origin || "";
+        case "person": return ticket.person || "";
+        case "amount": return Number(ticket.amount || 0);
+        case "spent": return spentAmount(ticket);
+        case "commission": return Number(ticket.commission || 0);
+        case "given": return Number(ticket.given || 0);
+        case "received": return Number(ticket.received || 0);
+        case "pedrea": return ticket.pedrea ? 1 : 0;
+        case "gross": return grossPrizeFor(ticket);
+        case "net": return earnedFor(ticket);
+        default: return "";
+      }
+    };
+    listedTickets.sort((a, b) => {
+      const left = sortValue(a.ticket);
+      const right = sortValue(b.ticket);
+      const comparison = typeof left === "string" ? left.localeCompare(right, "es", { numeric: true, sensitivity: "base" }) : left - right;
+      return comparison * ticketSortDirection || a.index - b.index;
+    });
+  }
   return `<div class="view-grid"><section class="panel"><div class="panel-heading"><div><h2>Mis décimos y participaciones</h2><p>${tickets().length} registros · ${euro(totalSpent())} gastados · ${euro(totalPlayed())} jugados</p></div></div><div class="table-wrap"><table class="ticket-table"><thead><tr><th aria-sort="${sortTicketsByNumber ? "ascending" : "none"}"><button class="table-sort-button" type="button" data-sort-tickets>Número ${sortTicketsByNumber ? "↑" : "↕"}</button></th><th>Origen</th><th>Importe jugado</th><th>Gastado</th><th>Comisión</th><th>Dado</th><th>Recibido</th><th>Pedrea</th><th>Premio total</th><th>Premio sin impuestos</th><th>Acciones</th></tr></thead><tbody>${listedTickets.length ? listedTickets.map(({ ticket, index }) => { const gross = prizeMatches(ticket).reduce((sum, prize) => sum + prize.gross * (Number(ticket.amount || 0) / 20), 0); const net = earnedFor(ticket); return `<tr class="${Number(ticket.given || 0) > 0 ? "shared-row" : ""}"><td class="number-cell">${ticket.number}</td><td>${ticket.origin || "—"}</td><td class="money-cell">${euro(ticket.amount)}</td><td class="money-cell strong-cell">${euro(spentAmount(ticket))}</td><td class="money-cell">${euro(ticket.commission)}</td><td class="money-cell">${euro(ticket.given)}</td><td class="money-cell">${euro(ticket.received)}</td><td><label class="pedrea-check"><input type="checkbox" data-ticket-pedrea="${index}" ${ticket.pedrea ? "checked" : ""}> <span>Cantado</span></label></td><td class="money-cell ${gross ? "positive" : ""}">${gross ? euro(gross) : "—"}</td><td class="money-cell ${net ? "positive" : ""}">${net ? `<strong>${euro(net)}</strong><small class="prize-detail">${prizeLabel(ticket)}</small>` : "—"}</td><td class="ticket-actions"><button class="action-button" type="button" data-edit-ticket="${index}" title="Editar décimo" aria-label="Editar décimo">&#9998;</button><button class="action-button danger" type="button" data-delete-ticket="${index}" title="Eliminar décimo" aria-label="Eliminar décimo">&#128465;</button></td></tr>`; }).join("") : `<tr><td colspan="11">${empty("Añade tu primer décimo para empezar.")}</td></tr>`}</tbody></table></div></section></div>`;
 }
 function renderEndings() {
@@ -181,10 +206,78 @@ function render() {
   const labels = { resumen: "Resumen de tu lotería", decimos: "Tus décimos", terminaciones: "Terminaciones", premios: "Premios y resultados" };
   el("viewTitle").textContent = labels[currentView];
   el("appContent").innerHTML = currentView === "resumen" ? renderSummary() : currentView === "decimos" ? renderTickets() : currentView === "terminaciones" ? renderEndings() : renderPrizes();
+  const ticketTable = el("appContent").querySelector(".ticket-table");
+  if (ticketTable) {
+    const headerRow = ticketTable.tHead.rows[0];
+    const personHeader = document.createElement("th");
+    personHeader.textContent = "Compartido con";
+    headerRow.insertBefore(personHeader, headerRow.cells[2]);
+    if (tickets().length) {
+      const totals = tickets().reduce((sum, ticket) => ({
+        amount: sum.amount + Number(ticket.amount || 0),
+        spent: sum.spent + spentAmount(ticket),
+        commission: sum.commission + Number(ticket.commission || 0),
+        given: sum.given + Number(ticket.given || 0),
+        received: sum.received + Number(ticket.received || 0),
+        gross: sum.gross + grossPrizeFor(ticket),
+        net: sum.net + earnedFor(ticket)
+      }), { amount: 0, spent: 0, commission: 0, given: 0, received: 0, gross: 0, net: 0 });
+      const totalRow = document.createElement("tr");
+      totalRow.className = "ticket-total-row";
+      totalRow.innerHTML = `<td class="number-cell">Totales</td><td></td><td class="money-cell">${euro(totals.amount)}</td><td class="money-cell">${euro(totals.spent)}</td><td class="money-cell">${euro(totals.commission)}</td><td class="money-cell">${euro(totals.given)}</td><td class="money-cell">${euro(totals.received)}</td><td></td><td class="money-cell">${euro(totals.gross)}</td><td class="money-cell">${euro(totals.net)}</td><td></td>`;
+      ticketTable.tBodies[0].prepend(totalRow);
+    }
+    ticketTable.tBodies[0].querySelectorAll("tr").forEach(row => {
+      const personCell = row.insertCell(2);
+      const editButton = row.querySelector("[data-edit-ticket]");
+      const ticket = editButton && tickets()[Number(editButton.dataset.editTicket)];
+      personCell.textContent = ticket ? ticket.person || "—" : "";
+    });
+    const sortColumns = [
+      ["Número", "number"], ["Origen", "origin"], ["Compartido con", "person"], ["Jugado", "amount"],
+      ["Gastado", "spent"], ["Comisión", "commission"], ["Dado", "given"], ["Recibido", "received"],
+      ["Pedrea", "pedrea"], ["Premio total", "gross"], ["Sin impuestos", "net"], ["Acciones", null]
+    ];
+    sortColumns.forEach(([label, key], index) => {
+      const header = headerRow.cells[index];
+      if (!key) return;
+      const active = ticketSortKey === key;
+      const button = document.createElement("button");
+      button.className = "table-sort-button";
+      button.type = "button";
+      button.dataset.sortTickets = key;
+      button.textContent = `${label} ${active ? ticketSortDirection === 1 ? "↑" : "↓" : "↕"}`;
+      header.setAttribute("aria-sort", active ? ticketSortDirection === 1 ? "ascending" : "descending" : "none");
+      header.replaceChildren(button);
+    });
+  }
+  document.querySelectorAll("#appContent .ticket-actions").forEach(actions => {
+    const row = actions.closest("tr");
+    const number = row?.querySelector(".number-cell")?.textContent.trim();
+    if (!number) return;
+    const editButton = row.querySelector("[data-edit-ticket]");
+    const ticket = editButton && tickets()[Number(editButton.dataset.editTicket)];
+    const params = new URLSearchParams({ numero: number });
+    if (ticket?.person) params.set("compartidoCon", ticket.person);
+    if (Number(ticket?.given || 0) > 0) params.set("dado", String(ticket.given));
+    const link = document.createElement("a");
+    link.className = "action-button";
+    link.href = `montaje.html?${params.toString()}`;
+    link.target = "_blank";
+    link.rel = "noopener";
+    link.title = "Montar imagen para compartir";
+    link.setAttribute("aria-label", `Montar imagen del décimo ${number}`);
+    link.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 13.5 6.8 4m0-11-6.8 4"></path></svg>';
+    actions.prepend(link);
+  });
   document.querySelectorAll(".nav-link").forEach(button => button.classList.toggle("active", button.dataset.view === currentView));
   document.querySelectorAll("#appContent [data-view]").forEach(button => button.addEventListener("click", () => { currentView = button.dataset.view; render(); }));
   document.querySelectorAll("[data-add-ticket]").forEach(button => button.addEventListener("click", openDialog));
-  document.querySelectorAll("[data-sort-tickets]").forEach(button => button.addEventListener("click", () => { sortTicketsByNumber = true; render(); }));
+  document.querySelectorAll("[data-sort-tickets]").forEach(button => button.addEventListener("click", () => {
+    if (ticketSortKey === button.dataset.sortTickets) ticketSortDirection *= -1;
+    else { ticketSortKey = button.dataset.sortTickets; ticketSortDirection = 1; }
+    render();
+  }));
   document.querySelectorAll("[data-edit-ticket]").forEach(button => button.addEventListener("click", () => openEditDialog(Number(button.dataset.editTicket))));
   document.querySelectorAll("[data-delete-ticket]").forEach(button => button.addEventListener("click", () => { tickets().splice(Number(button.dataset.deleteTicket), 1); save(); render(); }));
   document.querySelectorAll("[data-ticket-pedrea]").forEach(input => input.addEventListener("change", event => {
@@ -236,7 +329,35 @@ el("yearSelect").addEventListener("change", event => { selectedYear = Number(eve
 document.querySelectorAll(".nav-link").forEach(button => button.addEventListener("click", () => { currentView = button.dataset.view; render(); }));
 el("addTicketButton").addEventListener("click", openDialog); el("cancelDialog").addEventListener("click", closeDialog); el("closeDialog").addEventListener("click", closeDialog);
 el("addYearButton").addEventListener("click", openYearDialog); el("cancelYearDialog").addEventListener("click", closeYearDialog); el("closeYearDialog").addEventListener("click", closeYearDialog);
-el("ticketForm").addEventListener("submit", event => { event.preventDefault(); const form = new FormData(event.target); const ticket = { number: pad(form.get("number")), origin: String(form.get("origin") || ""), amount: Number(form.get("amount")), commission: Number(form.get("commission") || 0), given: Number(form.get("given") || 0), received: Number(form.get("received") || 0), person: String(form.get("person") || ""), note: String(form.get("note") || "") }; const ticketList = current().tickets; if (editTicketIndex === null) ticketList.push({ ...ticket, pedrea: false }); else ticketList[editTicketIndex] = { ...ticketList[editTicketIndex], ...ticket }; editTicketIndex = null; save(); closeDialog(); currentView = "decimos"; render(); });
+el("ticketForm").addEventListener("submit", event => {
+  event.preventDefault();
+  const form = new FormData(event.target);
+  const isAdding = editTicketIndex === null;
+  const personInput = String(form.get("person") || "").trim();
+  const ticket = {
+    number: pad(form.get("number")),
+    origin: String(form.get("origin") || ""),
+    amount: Number(form.get("amount")),
+    commission: Number(form.get("commission") || 0),
+    given: Number(form.get("given") || 0),
+    received: Number(form.get("received") || 0),
+    person: isAdding ? "" : personInput,
+    note: String(form.get("note") || "")
+  };
+  if (ticket.amount === 0) alert("Has indicado 0 € jugados para ti. El décimo se guardará con ese importe.");
+  const ticketList = current().tickets;
+  if (isAdding) {
+    const people = personInput.split(/[,;]+/).map(person => person.trim()).filter(Boolean);
+    ticketList.push(...(people.length ? people : [""]).map(person => ({ ...ticket, person, pedrea: false })));
+  } else {
+    ticketList[editTicketIndex] = { ...ticketList[editTicketIndex], ...ticket };
+  }
+  editTicketIndex = null;
+  save();
+  closeDialog();
+  currentView = "decimos";
+  render();
+});
 el("yearForm").addEventListener("submit", event => { event.preventDefault(); const year = Number(new FormData(event.target).get("year")); const error = el("yearFormError"); if (!Number.isInteger(year) || year < 1900 || year > 2100) { error.textContent = "Introduce un año entre 1900 y 2100."; error.hidden = false; return; } if (data[year]) { error.textContent = "Ese año ya existe."; error.hidden = false; return; } data[year] = emptyYear(); selectedYear = year; save(); closeYearDialog(); render(); });
 el("exportButton").addEventListener("click", () => { const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `mi-navidad-${selectedYear}.json`; link.click(); URL.revokeObjectURL(link.href); });
 
@@ -285,7 +406,14 @@ el("loginForm").addEventListener("submit", async event => {
     else await window.LoteriaAuth.login(nick, password);
     await enterApp(nick);
   } catch (error) {
-    setAuthError(error.message || "No se pudo iniciar sesión.");
+    const message = error.code === "auth/network-request-failed"
+      ? "No se pudo conectar con Firebase. Comprueba tu conexión e inténtalo de nuevo."
+      : error.code === "auth/operation-not-allowed"
+        ? "La autenticación anónima está desactivada en Firebase. Contacta con quien administra el proyecto."
+        : error.code === "permission-denied"
+          ? "Firebase ha rechazado el acceso a los datos. Comprueba las reglas de Firestore."
+          : error.message || "No se pudo iniciar sesión.";
+    setAuthError(message);
   }
 });
 
@@ -296,8 +424,14 @@ el("signOutButton").addEventListener("click", () => {
 });
 
 (async function bootstrapAuth() {
-  await window.LoteriaAuth.ready();
-  const saved = localStorage.getItem("mi-navidad-user");
-  if (saved) await enterApp(saved);
-  else showAuthScreen();
+  try {
+    await window.LoteriaAuth.ready();
+    const saved = localStorage.getItem("mi-navidad-user");
+    if (saved) await enterApp(saved);
+    else showAuthScreen();
+  } catch (error) {
+    console.error("No se pudo iniciar Firebase", error);
+    showAuthScreen();
+    setAuthError("No se pudo iniciar la sesión de Firebase. Comprueba la conexión e inténtalo de nuevo.");
+  }
 })();

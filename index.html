@@ -90,14 +90,14 @@
       <div class="form-grid">
         <label>Número<input name="number" inputmode="numeric" maxlength="5" placeholder="00000" required></label>
         <label>Origen<input name="origin" placeholder="Administración, peña, Ana..."></label>
-        <label>Importe jugado<input name="amount" type="number" min="0.01" step="0.01" placeholder="20" required></label>
+        <label>Importe jugado<input name="amount" type="number" min="0" step="0.01" placeholder="20" required></label>
         <label>Comisión<input name="commission" type="number" min="0" step="0.01" placeholder="0"></label>
         <label>Dado<input name="given" type="number" min="0" step="0.01" placeholder="0"></label>
         <label>Recibido<input name="received" type="number" min="0" step="0.01" placeholder="0"></label>
-        <label>Persona / intercambio<input name="person" placeholder="Ej. Ana"></label>
+        <label>Persona / intercambio<input name="person" placeholder="Ana, Luis, Marta"></label>
         <label>Notas<input name="note" placeholder="Peña, administración..." ></label>
       </div>
-      <p class="form-help">Gastado = importe jugado + dado + comisión - recibido. El premio siempre se calcula sobre el importe jugado.</p>
+      <p class="form-help">Gastado = importe jugado + dado + comisión - recibido. El premio siempre se calcula sobre el importe jugado. Al añadir, separa varios nombres con comas o punto y coma para crear una fila por persona, repitiendo el resto de datos.</p>
       <div class="dialog-actions"><button type="button" class="secondary-button" id="cancelDialog">Cancelar</button><button class="primary-button" id="ticketSubmitButton" value="default">Guardar décimo</button></div>
     </form>
   </dialog>

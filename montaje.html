@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#16352f">
+  <title>Montar imagen del décimo | Mi lotería Navideña</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/montaje.css">
+</head>
+<body>
+  <main class="montage-shell">
+    <a class="back-link" href="index.html">← Volver a Mi lotería</a>
+    <header class="montage-header">
+      <div>
+        <p class="eyebrow">Mi lotería Navideña</p>
+        <h1>Prepara una imagen para compartir</h1>
+        <p class="intro">El número aparecerá sobre los bombos. La imagen se crea aquí y no se guarda en tu cuenta.</p>
+      </div>
+    </header>
+
+    <section class="montage-workspace" aria-label="Montaje de imagen del décimo">
+      <div class="preview-column">
+        <div class="preview-heading"><span>VISTA PREVIA</span><span>Décimo de Navidad</span></div>
+        <div class="canvas-frame">
+          <canvas id="ticketCanvas" aria-label="Vista previa del décimo con el número elegido">Cargando imagen del décimo...</canvas>
+        </div>
+      </div>
+      <aside class="controls-column">
+        <label class="number-field" for="numberInput">Número del décimo
+          <input id="numberInput" name="number" type="text" inputmode="numeric" autocomplete="off" maxlength="5" pattern="[0-9]{5}" placeholder="00000" aria-describedby="numberHelp" required>
+        </label>
+        <p class="field-help" id="numberHelp">Escribe las cinco cifras. Puedes corregirlas antes de generar la imagen.</p>
+        <div class="montage-actions">
+          <button class="primary-button" id="downloadButton" type="button" disabled><span aria-hidden="true">↓</span> Descargar imagen</button>
+          <button class="secondary-button" id="shareButton" type="button" hidden disabled><span aria-hidden="true">↗</span> Compartir imagen</button>
+        </div>
+        <div class="message-editor">
+          <label for="shareMessage">Texto para acompañar la imagen</label>
+          <textarea id="shareMessage" rows="4" maxlength="500" aria-describedby="shareMessageHelp"></textarea>
+          <p class="message-help" id="shareMessageHelp">Edita y copia el mensaje para pegarlo junto a la imagen en WhatsApp.</p>
+          <button class="secondary-button" id="copyMessageButton" type="button" disabled>Copiar mensaje</button>
+        </div>
+        <p class="status-message" id="montageStatus" role="status" aria-live="polite">Introduce un número de cinco cifras.</p>
+      </aside>
+    </section>
+  </main>
+  <script type="module" src="js/montaje.js"></script>
+</body>
+</html>
