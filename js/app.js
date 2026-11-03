@@ -289,7 +289,7 @@ function render() {
     const key = event.target.dataset.prize;
     if (key === "pedrea") current().pedrea = event.target.value.split(/[\s,;]+/).map(pad).filter(validNumber);
     else if (event.target.dataset.index !== "") current()[key][Number(event.target.dataset.index)] = event.target.value.replace(/\D/g, "").slice(0, 5);
-    else current()[key] = pad(event.target.value);
+    else current()[key] = event.target.value.replace(/\D/g, "").slice(0, 5);
     el("prizeEarnedTotal").textContent = euro(totalEarned());
     save();
   }));
