@@ -1,6 +1,7 @@
 const canvas = document.querySelector("#ticketCanvas");
 const context = canvas.getContext("2d");
 const numberInput = document.querySelector("#numberInput");
+const sharedAmountInput = document.querySelector("#sharedAmount");
 const downloadButton = document.querySelector("#downloadButton");
 const shareButton = document.querySelector("#shareButton");
 const shareMessageInput = document.querySelector("#shareMessage");
@@ -11,9 +12,6 @@ const ticketImage = new Image();
 const params = new URLSearchParams(window.location.search);
 const requestedNumber = params.get("numero") || "";
 const requestedPerson = (params.get("compartidoCon") || "").trim();
-const givenAmountParam = params.get("dado");
-const givenAmount = givenAmountParam === null ? null : Number(givenAmountParam);
-const hasGivenAmount = givenAmount !== null && Number.isFinite(givenAmount) && givenAmount > 0;
 let shareMessageEdited = false;
 if (/^\d{1,5}$/.test(requestedNumber)) numberInput.value = requestedNumber.padStart(5, "0");
 shareMessageInput.value = suggestedShareMessage();
@@ -32,6 +30,7 @@ numberInput.addEventListener("input", () => {
   drawMontage();
 });
 shareMessageInput.addEventListener("input", () => { shareMessageEdited = true; });
+sharedAmountInput.addEventListener("input", drawMontage);
 
 downloadButton.addEventListener("click", async () => {
   try {
@@ -111,11 +110,12 @@ function drawMontage() {
     [...number].forEach((digit, index) => {
       context.fillText(digitWords[Number(digit)], firstBomboX + bomboSpacing * index, canvas.height * 0.252);
     });
-  if (hasGivenAmount) drawGivenAmount();
+  const sharedAmount = Number(sharedAmountInput.value);
+  if (Number.isFinite(sharedAmount) && sharedAmount > 0) drawSharedAmount(sharedAmount);
   context.restore();
 }
 
-function drawGivenAmount() {
+function drawSharedAmount(sharedAmount) {
   const boxWidth = canvas.width * 0.112;
   const boxHeight = canvas.height * 0.1;
   const centerX = canvas.width * 0.898;
@@ -132,7 +132,7 @@ function drawGivenAmount() {
   context.font = `700 ${Math.round(boxHeight * 0.72)}px Arial, Helvetica, Calibri, sans-serif`;
   context.textAlign = "center";
   context.textBaseline = "middle";
-  context.fillText(new Intl.NumberFormat("es-ES", { maximumFractionDigits: 2 }).format(givenAmount), centerX, centerY, boxWidth * 0.9);
+  context.fillText(`${new Intl.NumberFormat("es-ES", { maximumFractionDigits: 2 }).format(sharedAmount)} €`, centerX, centerY, boxWidth * 0.9);
 }
 
 function makeImageBlob() {

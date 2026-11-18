@@ -108,7 +108,20 @@ h3 { margin: 0; font: 700 18px "Space Grotesk", sans-serif; }
 .ending-card strong { font: 700 18px "Space Grotesk", sans-serif; }
 .ending-card span { margin-top: 4px; color: var(--muted); font-size: 12px; }
 .table-wrap { overflow-x: auto; min-width: 0; }
+.table-wrap:has(.ticket-table) { max-height: calc(100vh - 280px); overflow: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.ticket-table thead { position: sticky; top: 0; z-index: 3; background: var(--surface); }
+.ticket-table thead tr:first-child th {
+  color: #fff;
+  background: var(--green-dark);
+  border-bottom: 3px solid var(--gold);
+  box-shadow: 0 2px 5px rgba(22, 53, 47, .18);
+}
+.ticket-table thead tr:first-child th:first-child { border-radius: 6px 0 0; padding-left: 10px; }
+.ticket-table thead tr:first-child th:last-child { border-radius: 0 6px 0 0; }
+.ticket-table thead tr:first-child .table-sort-button { color: inherit; font-weight: 700; }
+.ticket-table thead tr:first-child .table-sort-button:hover,
+.ticket-table thead tr:first-child .table-sort-button:focus-visible { color: #f0c978; }
 .ticket-table .money-cell { text-align: right; font-variant-numeric: tabular-nums; }
 .ticket-table td:nth-child(3) { min-width: 90px; max-width: 150px; white-space: normal; }
 .ticket-table th:nth-child(11), .ticket-table td:nth-child(11) { width: 100px; max-width: 100px; white-space: normal; }
@@ -185,7 +198,9 @@ dialog::backdrop { background: rgba(22,53,47,.45); backdrop-filter: blur(4px); }
 .bottom-nav { display: none; }
 
 @media (min-width: 1100px) {
-  .view-grid:has(.ticket-table) { width: calc(100% + 100px); margin-left: -50px; }
+  main:has(.ticket-table) { max-width: none; padding-left: 3vw; padding-right: 3vw; }
+  .ticket-table { font-size: 13px; }
+  .ticket-table th, .ticket-table td { padding-left: 8px; padding-right: 8px; }
 }
 
 @media (max-width: 860px) {

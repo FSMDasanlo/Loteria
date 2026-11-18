@@ -33,6 +33,10 @@
           <input id="numberInput" name="number" type="text" inputmode="numeric" autocomplete="off" maxlength="5" pattern="[0-9]{5}" placeholder="00000" aria-describedby="numberHelp" required>
         </label>
         <p class="field-help" id="numberHelp">Escribe las cinco cifras. Puedes corregirlas antes de generar la imagen.</p>
+        <label class="number-field amount-field" for="sharedAmount">Cantidad compartida
+          <input id="sharedAmount" name="sharedAmount" type="number" min="0.01" step="0.01" inputmode="decimal" autocomplete="off">
+        </label>
+        <p class="field-help">Esta es la cantidad que recibirá esta persona. No modifica el total "Dado" de la tabla.</p>
         <div class="montage-actions">
           <button class="primary-button" id="downloadButton" type="button" disabled><span aria-hidden="true">↓</span> Descargar imagen</button>
           <button class="secondary-button" id="shareButton" type="button" hidden disabled><span aria-hidden="true">↗</span> Compartir imagen</button>

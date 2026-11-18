@@ -225,7 +225,8 @@ function render() {
       const totalRow = document.createElement("tr");
       totalRow.className = "ticket-total-row";
       totalRow.innerHTML = `<td class="number-cell">Totales</td><td></td><td class="money-cell">${euro(totals.amount)}</td><td class="money-cell">${euro(totals.spent)}</td><td class="money-cell">${euro(totals.commission)}</td><td class="money-cell">${euro(totals.given)}</td><td class="money-cell">${euro(totals.received)}</td><td></td><td class="money-cell">${euro(totals.gross)}</td><td class="money-cell">${euro(totals.net)}</td><td></td>`;
-      ticketTable.tBodies[0].prepend(totalRow);
+      ticketTable.tHead.append(totalRow);
+      totalRow.insertCell(2);
     }
     ticketTable.tBodies[0].querySelectorAll("tr").forEach(row => {
       const personCell = row.insertCell(2);
@@ -259,7 +260,6 @@ function render() {
     const ticket = editButton && tickets()[Number(editButton.dataset.editTicket)];
     const params = new URLSearchParams({ numero: number });
     if (ticket?.person) params.set("compartidoCon", ticket.person);
-    if (Number(ticket?.given || 0) > 0) params.set("dado", String(ticket.given));
     const link = document.createElement("a");
     link.className = "action-button";
     link.href = `montaje.html?${params.toString()}`;
